@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>World Top 10</title>
+<meta name="description" content="Daily briefing of the 10 most important world stories">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="World Top 10">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f6f4ef" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181c" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{
+  --bg:#f6f4ef; --card:#ffffff; --ink:#1b1d21; --muted:#6b6f78; --line:#e4e0d6;
+  --accent:#b4441f; --accent-soft:#f6e6de; --chip:#efece4; --shadow:0 1px 2px rgba(0,0,0,.05),0 4px 14px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#16181c; --card:#1f2228; --ink:#eceae4; --muted:#9a9ea8; --line:#2e323a;
+    --accent:#f08a5d; --accent-soft:#3a2a22; --chip:#2a2e35; --shadow:none;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.55 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);
+  padding:calc(env(safe-area-inset-top) + 10px) 16px 10px}
+.bar{max-width:720px;margin:0 auto;display:flex;align-items:center;gap:8px}
+.brand{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.date-btn{flex:1;min-width:0;text-align:left;background:none;border:0;color:var(--ink);padding:0;cursor:pointer;font:inherit}
+.date-btn .d{font-size:20px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.date-btn .d svg{flex:none;opacity:.6}
+.nav{display:flex;gap:6px}
+.icon-btn{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);
+  display:grid;place-items:center;cursor:pointer}
+.icon-btn:disabled{opacity:.35;cursor:default}
+main{max-width:720px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bottom) + 40px)}
+.oneline{background:var(--accent-soft);border-radius:16px;padding:14px 16px;margin:4px 0 18px;font-size:16px}
+.oneline b{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.content h2.story{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;font-size:18px;line-height:1.35;margin:0;
+  padding:16px 16px 6px;background:var(--card);border:1px solid var(--line);border-bottom:0;border-radius:16px 16px 0 0}
+.content h2.story + p{margin:-1px 0 14px;padding:0 16px 16px;background:var(--card);border:1px solid var(--line);border-top:0;
+  border-radius:0 0 16px 16px;box-shadow:var(--shadow);font-size:15px}
+.num{flex:none;font-variant-numeric:tabular-nums;color:var(--accent);font-weight:800;min-width:1.4em}
+.ht{flex:1 1 200px}
+.cat{flex:none;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);
+  background:var(--chip);padding:3px 8px;border-radius:999px}
+.content strong{font-weight:650}
+.content h2:not(.story),.content h3{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:28px 0 8px}
+.content ul{margin:0 0 12px;padding:0 0 0 20px}
+.content li{margin:4px 0}
+.content > p{margin:0 0 12px}
+.foot{color:var(--muted);font-size:13px;margin-top:28px;text-align:center}
+.empty{color:var(--muted);text-align:center;padding:60px 0}
+/* date sheet */
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-height:75vh;background:var(--card);border-radius:20px 20px 0 0;z-index:21;
+  transform:translateY(100%);transition:transform .25s ease;display:flex;flex-direction:column;
+  padding-bottom:env(safe-area-inset-bottom)}
+.open .sheet-bg{opacity:1;pointer-events:auto}
+.open .sheet{transform:none}
+.sheet h3{margin:0;padding:16px 18px 10px;font-size:15px}
+.sheet ul{list-style:none;margin:0;padding:0 8px 12px;overflow:auto}
+.sheet li button{width:100%;text-align:left;background:none;border:0;color:var(--ink);font:inherit;padding:10px 10px;border-radius:12px;cursor:pointer}
+.sheet li button.cur{background:var(--accent-soft)}
+.sheet li .sd{font-weight:650}
+.sheet li .sl{display:block;color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (min-width:900px){ .sheet{left:50%;right:auto;width:480px;margin-left:-240px} }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <button class="date-btn" id="dateBtn" aria-label="Choose date">
+      <div class="brand">World Top 10</div>
+      <div class="d"><span id="dateTxt">&nbsp;</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></div>
+    </button>
+    <div class="nav">
+      <button class="icon-btn" id="older" aria-label="Older briefing"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+      <button class="icon-btn" id="newer" aria-label="Newer briefing"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+    </div>
+  </div>
+</header>
+<main>
+  <div id="one"></div>
+  <article class="content" id="content"></article>
+  <div class="foot" id="foot"></div>
+</main>
+<div id="sheetWrap">
+  <div class="sheet-bg" id="sheetBg"></div>
+  <div class="sheet" role="dialog" aria-label="All briefings">
+    <h3>All briefings</h3>
+    <ul id="list"></ul>
+  </div>
+</div>
+<script>
+const DATA = [];
+const $ = id => document.getElementById(id);
+const fmt = (d, opts) => new Date(d + "T00:00:00").toLocaleDateString("en-GB", opts);
+const long = d => fmt(d, {weekday:"short", day:"numeric", month:"short", year:"numeric"});
+let idx = 0;
+
+function pick() {
+  const h = location.hash.slice(1);
+  const i = DATA.findIndex(e => e.date === h);
+  return i >= 0 ? i : 0;
+}
+function render() {
+  if (!DATA.length) { $("content").innerHTML = '<div class="empty">No briefings yet. The first one arrives at 8:00 AM Hong Kong time.</div>'; return; }
+  const e = DATA[idx];
+  $("dateTxt").textContent = long(e.date) + (idx === 0 ? " · Latest" : "");
+  $("one").innerHTML = e.line ? '<div class="oneline"><b>Today in one line</b></div>' : "";
+  if (e.line) $("one").firstChild.append(e.line);
+  $("content").innerHTML = e.html;
+  $("older").disabled = idx >= DATA.length - 1;
+  $("newer").disabled = idx <= 0;
+  $("foot").textContent = DATA.length + " briefing" + (DATA.length > 1 ? "s" : "") + " saved on this device" + (navigator.onLine ? "" : " · offline");
+  document.querySelectorAll("#list button").forEach((b, i) => b.classList.toggle("cur", i === idx));
+  window.scrollTo(0, 0);
+}
+function go(i) {
+  idx = Math.max(0, Math.min(DATA.length - 1, i));
+  history.replaceState(null, "", idx === 0 ? location.pathname : "#" + DATA[idx].date);
+  render();
+}
+$("list").innerHTML = DATA.map((e, i) =>
+  '<li><button data-i="' + i + '"><span class="sd">' + long(e.date) + (i === 0 ? " · Latest" : "") + '</span><span class="sl"></span></button></li>').join("");
+document.querySelectorAll("#list .sl").forEach((s, i) => s.textContent = DATA[i].line);
+const toggle = on => $("sheetWrap").classList.toggle("open", on);
+$("dateBtn").onclick = () => toggle(true);
+$("sheetBg").onclick = () => toggle(false);
+$("list").onclick = ev => { const b = ev.target.closest("button"); if (b) { toggle(false); go(+b.dataset.i); } };
+$("older").onclick = () => go(idx + 1);
+$("newer").onclick = () => go(idx - 1);
+document.addEventListener("keydown", e => { if (e.key === "ArrowLeft") go(idx + 1); if (e.key === "ArrowRight") go(idx - 1); if (e.key === "Escape") toggle(false); });
+window.addEventListener("hashchange", () => { idx = pick(); render(); });
+addEventListener("online", render); addEventListener("offline", render);
+idx = pick(); render();
+if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>
