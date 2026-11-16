@@ -72,18 +72,27 @@ def md_to_html(md):
     return "\n".join(out)
 
 
+# Editions: World lives in briefings/DATE.md, the others in briefings/<key>/DATE.md
+EDITIONS = [("world", BRIEF_DIR), ("us", BRIEF_DIR / "us"), ("asia", BRIEF_DIR / "asia"), ("hk", BRIEF_DIR / "hk")]
+
+
+def edition(path):
+    md = path.read_text(encoding="utf-8-sig")
+    one = re.search(r"\*\*Today in one line:\*\*\s*(.+)", md)
+    return {
+        "line": re.sub(r"\*\*|\[|\]\([^)]*\)", "", one.group(1)).strip() if one else "",
+        "html": md_to_html(md),
+    }
+
+
 def main():
+    dates = set()
+    for _, d in EDITIONS:
+        dates |= {f.stem for f in d.glob("*.md") if re.match(r"^\d{4}-\d{2}-\d{2}$", f.stem)}
     entries = []
-    for f in sorted(BRIEF_DIR.glob("*.md"), reverse=True):
-        if not re.match(r"^\d{4}-\d{2}-\d{2}$", f.stem):
-            continue
-        md = f.read_text(encoding="utf-8-sig")
-        one = re.search(r"\*\*Today in one line:\*\*\s*(.+)", md)
-        entries.append({
-            "date": f.stem,
-            "line": re.sub(r"\*\*|\[|\]\([^)]*\)", "", one.group(1)).strip() if one else "",
-            "html": md_to_html(md),
-        })
+    for date in sorted(dates, reverse=True):
+        eds = {key: edition(d / (date + ".md")) for key, d in EDITIONS if (d / (date + ".md")).exists()}
+        entries.append({"date": date, "ed": eds})
     data = json.dumps(entries, ensure_ascii=False).replace("</", "<\\/")
     tpl = (ROOT / "template.html").read_text(encoding="utf-8")
     assert "/*DATA*/" in tpl

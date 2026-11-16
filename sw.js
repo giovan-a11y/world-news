@@ -1,5 +1,5 @@
 // Network first, fall back to the last copy saved on the device (works offline).
-const CACHE = "world-top10-v1";
+const CACHE = "world-top10-v2";
 const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {

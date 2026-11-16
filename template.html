@@ -43,6 +43,11 @@ header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88
 .icon-btn{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);
   display:grid;place-items:center;cursor:pointer}
 .icon-btn:disabled{opacity:.35;cursor:default}
+.seg{max-width:720px;margin:10px auto 0;display:grid;grid-template-columns:repeat(4,1fr);gap:2px;background:var(--chip);
+  border-radius:12px;padding:3px}
+.seg button{border:0;background:none;color:var(--muted);font:600 14px/1 inherit;font-family:inherit;padding:9px 0;border-radius:9px;cursor:pointer}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.seg button:disabled{opacity:.4;cursor:default}
 main{max-width:720px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bottom) + 40px)}
 .oneline{background:var(--accent-soft);border-radius:16px;padding:14px 16px;margin:4px 0 18px;font-size:16px}
 .oneline b{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
@@ -81,7 +86,7 @@ main{max-width:720px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bo
 <header>
   <div class="bar">
     <button class="date-btn" id="dateBtn" aria-label="Choose date">
-      <div class="brand">World Top 10</div>
+      <div class="brand" id="brand">World Top 10</div>
       <div class="d"><span id="dateTxt">&nbsp;</span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></div>
     </button>
@@ -90,6 +95,9 @@ main{max-width:720px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bo
       <button class="icon-btn" id="newer" aria-label="Newer briefing"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
     </div>
   </div>
+  <nav class="seg" id="seg" aria-label="Edition">
+    <button data-k="world">World</button><button data-k="us">US</button><button data-k="asia">Asia</button><button data-k="hk">Hong Kong</button>
+  </nav>
 </header>
 <main>
   <div id="one"></div>
@@ -108,34 +116,55 @@ const DATA = /*DATA*/[];
 const $ = id => document.getElementById(id);
 const fmt = (d, opts) => new Date(d + "T00:00:00").toLocaleDateString("en-GB", opts);
 const long = d => fmt(d, {weekday:"short", day:"numeric", month:"short", year:"numeric"});
+const NAMES = {world: "World", us: "US", asia: "Asia", hk: "Hong Kong"};
 let idx = 0;
+let ed = "world";
+try { ed = localStorage.getItem("ed") || "world"; } catch (e) {}
+if (!NAMES[ed]) ed = "world";
+const firstLine = e => (e.ed.world || Object.values(e.ed)[0] || {}).line || "";
 
 function pick() {
-  const h = location.hash.slice(1);
-  const i = DATA.findIndex(e => e.date === h);
+  const [d, k] = location.hash.slice(1).split("/");
+  if (NAMES[k]) ed = k;
+  const i = DATA.findIndex(e => e.date === d);
   return i >= 0 ? i : 0;
 }
 function render() {
+  document.querySelectorAll("#seg button").forEach(b => {
+    b.classList.toggle("on", b.dataset.k === ed);
+    b.disabled = !!DATA.length && !DATA[idx].ed[b.dataset.k];
+  });
+  $("brand").textContent = NAMES[ed] + " Top 10";
+  document.title = NAMES[ed] + " Top 10";
   if (!DATA.length) { $("content").innerHTML = '<div class="empty">No briefings yet. The first one arrives at 8:00 AM Hong Kong time.</div>'; return; }
   const e = DATA[idx];
+  const b = e.ed[ed];
   $("dateTxt").textContent = long(e.date) + (idx === 0 ? " · Latest" : "");
-  $("one").innerHTML = e.line ? '<div class="oneline"><b>Today in one line</b></div>' : "";
-  if (e.line) $("one").firstChild.append(e.line);
-  $("content").innerHTML = e.html;
+  $("one").innerHTML = b && b.line ? '<div class="oneline"><b>Today in one line</b></div>' : "";
+  if (b && b.line) $("one").firstChild.append(b.line);
+  $("content").innerHTML = b ? b.html : '<div class="empty">No ' + NAMES[ed] + ' list for this day. Try World.</div>';
   $("older").disabled = idx >= DATA.length - 1;
   $("newer").disabled = idx <= 0;
-  $("foot").textContent = DATA.length + " briefing" + (DATA.length > 1 ? "s" : "") + " saved on this device" + (navigator.onLine ? "" : " · offline");
+  $("foot").textContent = DATA.length + " day" + (DATA.length > 1 ? "s" : "") + " saved on this device" + (navigator.onLine ? "" : " · offline");
   document.querySelectorAll("#list button").forEach((b, i) => b.classList.toggle("cur", i === idx));
-  window.scrollTo(0, 0);
+}
+function sync() {
+  const tag = (idx === 0 ? "" : DATA[idx].date) + (ed === "world" ? "" : "/" + ed);
+  history.replaceState(null, "", tag ? "#" + tag : location.pathname);
 }
 function go(i) {
   idx = Math.max(0, Math.min(DATA.length - 1, i));
-  history.replaceState(null, "", idx === 0 ? location.pathname : "#" + DATA[idx].date);
-  render();
+  sync(); render(); window.scrollTo(0, 0);
 }
+$("seg").onclick = ev => {
+  const b = ev.target.closest("button"); if (!b || b.disabled) return;
+  ed = b.dataset.k;
+  try { localStorage.setItem("ed", ed); } catch (e) {}
+  sync(); render(); window.scrollTo(0, 0);
+};
 $("list").innerHTML = DATA.map((e, i) =>
   '<li><button data-i="' + i + '"><span class="sd">' + long(e.date) + (i === 0 ? " · Latest" : "") + '</span><span class="sl"></span></button></li>').join("");
-document.querySelectorAll("#list .sl").forEach((s, i) => s.textContent = DATA[i].line);
+document.querySelectorAll("#list .sl").forEach((s, i) => s.textContent = firstLine(DATA[i]));
 const toggle = on => $("sheetWrap").classList.toggle("open", on);
 $("dateBtn").onclick = () => toggle(true);
 $("sheetBg").onclick = () => toggle(false);
@@ -145,7 +174,9 @@ $("newer").onclick = () => go(idx - 1);
 document.addEventListener("keydown", e => { if (e.key === "ArrowLeft") go(idx + 1); if (e.key === "ArrowRight") go(idx - 1); if (e.key === "Escape") toggle(false); });
 window.addEventListener("hashchange", () => { idx = pick(); render(); });
 addEventListener("online", render); addEventListener("offline", render);
-idx = pick(); render();
+idx = pick();
+if (DATA.length && !DATA[idx].ed[ed]) ed = "world";
+render();
 if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
 </body>
